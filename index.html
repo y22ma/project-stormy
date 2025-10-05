@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stormy Weather | MERRA-2 Forecasts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.22.0"
+  }
+}
+</script>
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #f0f9ff; /* Light sky blue for light mode */
+      transition: background-color 0.5s ease-in-out;
+    }
+    .dark body {
+      background-color: #0f172a; /* a default dark blue background */
+    }
+    @keyframes bobble {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+    .animate-bobble {
+      animation: bobble 4s ease-in-out infinite;
+    }
+     @keyframes fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fade-in 0.5s ease-out forwards;
+    }
+    /* Weather Animations */
+    .rain-drop {
+      position: absolute;
+      bottom: 100%;
+      width: 1px;
+      height: 60px;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.4));
+      animation: rain-fall linear infinite;
+    }
+
+    @keyframes rain-fall {
+      from {
+        transform: translateY(0vh);
+      }
+      to {
+        transform: translateY(120vh);
+      }
+    }
+    
+    .lightning-bolt {
+      position: absolute;
+      top: -5%;
+      width: 250px;
+      height: 60vh; /* Increased height for ground strikes */
+      opacity: 0;
+      transform-origin: 50% 0; /* Rotate from top center */
+      filter: drop-shadow(0 0 8px white) drop-shadow(0 0 16px rgba(200, 220, 255, 0.7));
+    }
+
+    .lightning-flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: white;
+      opacity: 0;
+      animation: lightning-flash 8s linear infinite;
+    }
+    
+    .lightning-bolt--primary {
+      animation: lightning-bolt-primary 8s linear infinite both;
+    }
+    
+    .lightning-bolt--secondary {
+      animation: lightning-bolt-secondary 8s linear infinite both;
+    }
+
+    @keyframes lightning-bolt-primary {
+      0%, 94% { opacity: 0; transform: scale(1); }
+      /* First main flicker */
+      94.2% { opacity: 1; transform: scale(1.05); }
+      94.4% { opacity: 0.3; }
+      94.5% { opacity: 1; }
+      94.7% { opacity: 0; transform: scale(1); }
+      /* Second, faster flicker */
+      95% { opacity: 0.8; transform: scale(1.02); }
+      95.2% { opacity: 0; transform: scale(1); }
+      100% { opacity: 0; }
+    }
+
+    @keyframes lightning-bolt-secondary {
+      0%, 95.5% { opacity: 0; }
+      95.7% { opacity: 0.6; }
+      95.9% { opacity: 0; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes lightning-flash {
+      0%, 94% { opacity: 0; }
+      /* Match the primary bolt's flash */
+      94.2% { opacity: 0.8; }
+      94.3% { opacity: 0.1; }
+      94.4% { opacity: 0.6; }
+      94.6% { opacity: 0.2; }
+      94.7% { opacity: 0.9; transform: scaleX(1.2); }
+      95.2% { opacity: 0; transform: scaleX(1); }
+      100% { opacity: 0; }
+    }
+    
+    /* Sun Animation */
+    @keyframes sun-fade-in {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .sun-container {
+      position: absolute;
+      top: -50px;
+      left: -50px;
+      width: 300px;
+      height: 300px;
+      pointer-events: none;
+      animation: sun-fade-in 0.7s ease-out forwards;
+    }
+    .sun-core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, rgba(255,255,240,1) 0%, rgba(253,224,71,1) 60%, rgba(251,191,36,0) 100%);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: sun-pulse 6s ease-in-out infinite;
+      filter: drop-shadow(0 0 25px rgba(253, 224, 71, 0.9));
+    }
+    @keyframes sun-pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.95; }
+    }
+    
+    /* Snow Animation */
+    .snow-flake {
+      position: absolute;
+      top: -10px;
+      width: 5px;
+      height: 5px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0;
+      animation: snow-fall linear infinite;
+    }
+
+    @keyframes snow-fall {
+      0% {
+        transform: translateY(0vh) translateX(0px);
+        opacity: 1;
+      }
+      50% {
+        transform: translateY(50vh) translateX(20px);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) translateX(-20px);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

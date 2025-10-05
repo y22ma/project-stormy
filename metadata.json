@@ -1,0 +1,5 @@
+{
+  "name": "Copy of Stormy",
+  "description": "A visually appealing weather application that uses the Gemini API to synthesize weather data based on MERRA-2 datasets, providing current conditions and a 5-day forecast for any location.",
+  "requestFramePermissions": []
+}
